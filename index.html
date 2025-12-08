@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>University HR Transaction Submit-By Calculator</title>
+  <style>
+    :root{
+      --umn-maroon:#7A0019; --umn-gold:#FFCC33; --umn-dark-gold:#E5B700;
+      --umn-gray-90:#2F2F2F; --umn-gray-60:#6B6B6B; --umn-gray-20:#D6D6D6; --bg:#fff8eb;
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin:0; padding:0; color:var(--umn-gray-90); background:var(--bg)}
+    header{background:var(--umn-maroon); color:#fff; padding:1.25rem 1rem; border-bottom:6px solid var(--umn-gold)}
+    header h1{margin:.1rem 0; font-weight:800; font-size:1.5rem}
+    header p{margin:.25rem 0 0; opacity:.9}
+    main{max-width:1100px; margin:1.25rem auto; padding:0 1rem 3rem}
+
+    .card{background:#fff; border:1px solid var(--umn-gray-20); border-radius:16px; box-shadow:0 2px 10px rgba(0,0,0,.04); padding:1rem; margin:0 0 1rem}
+    .grid{display:grid; gap:1rem}
+    @media(min-width:900px){.grid-cols-2{grid-template-columns:1.3fr .7fr}}
+    label{display:block; font-weight:600; margin:.25rem 0 .25rem}
+    input, select, button{width:100%; padding:.7rem .8rem; border-radius:10px; border:1px solid var(--umn-gray-20); font-size:1rem; background:#fff}
+    input:focus, select:focus{outline:3px solid rgba(255,204,51,.35); border-color:var(--umn-gold)}
+    .muted{color:var(--umn-gray-60); font-size:.95rem}
+    .row{display:flex; gap:.6rem; align-items:end}
+    .row > *{flex:1}
+    .badge{display:inline-block; padding:.25rem .5rem; border-radius:999px; font-weight:700; font-size:.85rem; background:var(--umn-gold); color:#3a2a00}
+    .btn{cursor:pointer; background:var(--umn-maroon); color:#fff; border:0; font-weight:700; transition:transform .02s ease-in-out; box-shadow:0 2px 0 rgba(0,0,0,.1)}
+    .btn:active{transform:translateY(1px)}
+    .btn.secondary{background:#fff; color:var(--umn-maroon); border:2px solid var(--umn-maroon)}
+    .pill{display:inline-flex; gap:.4rem; align-items:center; background:#f7f7f7; padding:.35rem .6rem; border-radius:999px; border:1px solid var(--umn-gray-20); font-size:.85rem}
+    .list{margin:.25rem 0 0; padding-left:1.1rem}
+    .result{background:linear-gradient(180deg,#fff8eb,#fff); border:2px dashed var(--umn-dark-gold); border-radius:16px; padding:1rem; text-align:center}
+    .result h2{margin:.2rem 0 .4rem; font-size:1.6rem}
+    .result .date{font-size:1.4rem; font-weight:900; color:var(--umn-maroon)}
+    .help{font-size:.9rem; margin-top:.4rem}
+    details summary{cursor:pointer; font-weight:700}
+    .footer{color:var(--umn-gray-60); font-size:.85rem}
+    .table{width:100%; border-collapse:collapse; font-size:.95rem}
+    .table th, .table td{border-bottom:1px solid #eee; padding:.5rem .4rem; text-align:left}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>University HR Transaction Submit-By Calculator</h1>
+    <p>Pick a target <em>completion</em> date. We'll suggest the latest date to <strong>submit</strong> the request, honoring business days, holidays, and your team's service standard.</p>
+  </header>
+  <main>
+    <div class="grid grid-cols-2">
+      <section class="card">
+        <h2 style="margin-top:.2rem">Inputs</h2>
+
+        <div class="row">
+          <div>
+            <label for="team">Responsible team</label>
+            <select id="team" aria-label="Responsible team"></select>
+            <div class="help muted">You can override the lead time below.</div>
+          </div>
+          <div>
+            <label for="lead">Lead time (business days)</label>
+            <input id="lead" type="number" min="0" step="1" value="10" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="target">Target completion date</label>
+            <input id="target" type="date" />
+            <div class="help muted">The date by which you want the transaction complete/visible in job data.</div>
+          </div>
+
+          <div>
+            <label for="campus">Campus</label>
+            <select id="campus" aria-label="Campus"></select>
+            <div class="help muted">Twin Cities & Rochester default; others may observe additional closures.</div>
+          </div>
+        </div>
+
+        <div class="row">
+         
+          <div>
+            <label for="customHolidays">Additional closure dates (comma-separated YYYY-MM-DD)</label>
+            <input id="customHolidays" placeholder="e.g., 2026-01-02, 2026-03-14" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:1rem">
+          <button id="calc" class="btn" type="button">Calculate Submit-By Date</button>
+          <button id="reset" class="btn secondary" type="button">Reset</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 style="margin-top:.2rem">Result</h2>
+        <div id="result" class="result">
+          <div class="muted">No calculation yet.</div>
+        </div>
+        <div id="notes" class="help" style="margin-top:.8rem"></div>
+
+        <details class="card" style="margin-top:1rem; padding:.8rem">
+          <summary>Holiday calendar (read-only)</summary>
+          <div id="holidayList"></div>
+        </details>
+
+        <details class="card" style="margin-top:1rem; padding:.8rem">
+          <summary>Payroll closes (read-only)</summary>
+          <div id="payrollList"></div>
+        </details>
+      </section>
+    </div>
+
+    <section class="card">
+      <h3 style="margin:.25rem 0 .6rem">How the submit-by date is calculated</h3>
+      <ol class="list">
+        <li><strong>Lead time</strong> is set by the team selection (you can override days manually).</li>
+        <li>We <strong>walk backward</strong> from your target completion date, counting only <strong>business days</strong> (Mon–Fri) and skipping listed holidays/closures.</li>
+        <li>The first business day that satisfies the required lead time is the suggested <strong>Submit-By</strong> date.</li>
+        <li>If an official <strong>UMN payroll close</strong> occurs between Submit-By and Target, we show a <span class="badge">Heads-up</span> warning so you can plan earlier to hit pay deadlines.</li>
+      </ol>
+      <p class="footer">Always confirm edge cases (sudden closures, early timesheets, or team/campus-specific SLAs). This tool provides planning guidance, not policy.</p>
+    </section>
+  </main>
+
+ <script>
+/* ================================================
+   🔧 SINGLE-POINT CONFIG — edit just these objects
+   ================================================ */
+const TEAM_OPTIONS = [
+  { id: "ModifyPOIUNSEnd", label: "Modify/POI/UNS/End (10 business days)", days: 10, default: true },
+  { id: "Posting",         label: "Posting (10 business days)",            days: 10 },
+  { id: "Hiring",          label: "Hiring (3 weeks)",                      days: 15 },
+  { id: "ReclassJEQ",      label: "Reclassification (JEQ) (30 business days)", days: 30 },
+  { id: "ReclassNonJEQ",   label: "Reclassification (non-JEQ) (10 business days)", days: 10 },
+];
+
+// Add future payroll closes by year (affects math + shows in UI window)
+const PAYROLL_CLOSES = {
+  2024: ['2024-07-17','2024-07-31','2024-08-14','2024-08-28','2024-09-11','2024-09-25','2024-10-09','2024-10-23','2024-11-06','2024-11-20','2024-12-04','2024-12-18'],
+  2025: ['2025-07-02','2025-07-16','2025-07-30','2025-08-13','2025-08-27','2025-09-10','2025-09-24','2025-10-08','2025-10-22','2025-11-05','2025-11-19','2025-12-03','2025-12-17','2025-12-31'],
+  2026: ['2026-01-14','2026-01-28','2026-02-11','2026-02-25','2026-03-11','2026-03-25','2026-04-08','2026-04-22','2026-05-06','2026-05-20','2026-06-03','2026-06-17'],
+};
+
+// Campus-specific extra holidays by campus + year (merge with baseline)
+const CAMPUS_EXTRAS = {
+   "Twin Cities & Rochester": {
+      2025: ['2025-12-24','2025-12-26'],
+		2026: ['2026-01-01','2026-01-19','2026-05-25','2026-06-19','2026-07-03']
+    },
+    "Duluth": {
+       2025: ['2025-12-24','2025-12-26'],
+		2026: ['2026-01-01','2026-01-02','2026-01-19','2026-05-25','2026-06-19','2026-07-03']
+    },
+    "Morris": {
+     2025: ['2025-12-26'],
+		2026: ['2026-01-01','2026-01-02','2026-01-19','2026-03-13','2026-05-25','2026-06-19']
+    },
+    "Crookston": {
+       2025: ['2025-12-26'],
+		2026: ['2026-01-01','2026-01-02','2026-01-19','2026-02-16','2026-05-25','2026-06-19','2026-07-03']
+    }
+};
+
+/* ================================================
+   🚀 APP LOGIC (no edits needed below this line)
+   ================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Utilities
+  const pad = n => String(n).padStart(2,'0');
+  const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const toDate = s => { const [y,m,dd]=s.split('-').map(Number); return new Date(y,m-1,dd); };
+  const clone = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const uniqSorted = arr => Array.from(new Set(arr)).sort();
+
+  // DOM
+  const teamSel = document.getElementById('team');
+  const campusSel = document.getElementById('campus');
+  const leadInput = document.getElementById('lead');
+  const targetInput = document.getElementById('target');
+  const customHolidaysInput = document.getElementById('customHolidays');
+  const resultBox = document.getElementById('result');
+  const notesBox = document.getElementById('notes');
+  const holidayList = document.getElementById('holidayList');
+  const payrollList = document.getElementById('payrollList');
+
+  // Populate teams
+  teamSel.innerHTML = TEAM_OPTIONS.map(t=>{
+    const attrs = [`value="${t.id}"`, `data-days="${t.days}"`];
+    if (t.default) attrs.push('selected');
+    return `<option ${attrs.join(' ')}>${t.label}</option>`;
+  }).join('');
+
+  // Populate campuses
+  const campuses = Object.keys(CAMPUS_EXTRAS);
+  campusSel.innerHTML = campuses.map((c,i)=>`<option value="${c}" ${i===0?'selected':''}>${c}</option>`).join('');
+
+  // Lead from team
+  function syncLead(){
+    const opt = teamSel.options[teamSel.selectedIndex];
+    leadInput.value = String(parseInt(opt.getAttribute('data-days')||'10',10));
+  }
+
+  // Holiday helpers (baseline UMN + observed rules)
+  function nthWeekdayOfMonth(year, month, weekday, n){
+    const first = new Date(year, month, 1);
+    const offset = (7 + weekday - first.getDay()) % 7;
+    return new Date(year, month, 1 + offset + 7*(n-1));
+  }
+  function lastWeekdayOfMonth(year, month, weekday){
+    const last = new Date(year, month+1, 0);
+    const offset = (7 + last.getDay() - weekday) % 7;
+    return new Date(year, month+1, 0 - offset);
+  }
+  function observed(date){
+    const d = clone(date);
+    const wd = d.getDay();
+    if (wd===6) d.setDate(d.getDate()-1);
+    if (wd===0) d.setDate(d.getDate()+1);
+    return d;
+  }
+  function baselineUMNHolidays(year){
+    const H = [];
+    H.push(observed(new Date(year,0,1)));      // New Year
+    H.push(nthWeekdayOfMonth(year,0,1,3));     // MLK (Mon)
+    H.push(nthWeekdayOfMonth(year,1,1,3));     // Presidents' Day (Mon)
+    H.push(lastWeekdayOfMonth(year,4,1));      // Memorial Day (Mon)
+    H.push(observed(new Date(year,5,19)));     // Juneteenth
+    H.push(observed(new Date(year,6,4)));      // Independence Day
+    H.push(nthWeekdayOfMonth(year,8,1,1));     // Labor Day (Mon)
+    H.push(nthWeekdayOfMonth(year,9,1,2));     // Indigenous Peoples' Day (Mon)
+    H.push(observed(new Date(year,10,11)));    // Veterans Day
+    const thanksgiving = nthWeekdayOfMonth(year,10,4,4); // 4th Thu Nov
+    H.push(thanksgiving);
+    H.push(new Date(thanksgiving.getFullYear(), thanksgiving.getMonth(), thanksgiving.getDate()+1)); // Friday after
+    H.push(observed(new Date(year,11,25)));    // Christmas
+    return H.map(fmt);
+  }
+
+  function isBusinessDay(date, holidaySet){
+    const day = date.getDay();
+    if (day===0 || day===6) return false;
+    return !holidaySet.has(fmt(date));
+  }
+
+  // Window helpers
+  function days(n){ return n*24*60*60*1000; }
+  function yearsBetween(start, end){
+    const ys = [];
+    for (let y=start.getFullYear(); y<=end.getFullYear(); y++) ys.push(y);
+    return ys;
+  }
+
+  // Build holiday set across full window (target - lead - buffer → target)
+  function buildHolidaySet(target, leadDays, campus, manualList){
+    if (!target) return new Set(); // if no target yet
+    const buffer = 30; // extra cushion days in case of consecutive closures
+    const windowStart = new Date(target.getTime() - days(leadDays + buffer));
+    const windowEnd = clone(target);
+    const years = yearsBetween(windowStart, windowEnd);
+
+    const base = years.flatMap(y => baselineUMNHolidays(y));
+    const campusExtras = years.flatMap(y => (CAMPUS_EXTRAS[campus]||{})[y] || []);
+    const manual = (manualList||[])
+      .map(s=>s.trim())
+      .filter(Boolean);
+
+    return new Set(uniqSorted([...base, ...campusExtras, ...manual]));
+  }
+
+  // Subtract business days using a provided holidaySet
+  function subtractBusinessDays(targetDate, n, holidaySet){
+    let d = clone(targetDate);
+    // If target is not a business day, walk back to prior business day
+    if (!isBusinessDay(d, holidaySet)){
+      d.setDate(d.getDate()-1);
+      while(!isBusinessDay(d, holidaySet)) d.setDate(d.getDate()-1);
+    }
+    let remaining = n;
+    while (remaining>0){
+      d.setDate(d.getDate()-1);
+      if (isBusinessDay(d, holidaySet)) remaining--;
+    }
+    while(!isBusinessDay(d, holidaySet)) d.setDate(d.getDate()-1);
+    return d;
+  }
+
+  // Payroll closes within a window
+  function payrollClosesBetween(startDate, endDate){
+    const ys = yearsBetween(startDate, endDate);
+    const all = ys.flatMap(y => (PAYROLL_CLOSES[y]||[])).map(toDate);
+    return all.filter(d => d > startDate && d <= endDate).sort((a,b)=>a-b);
+  }
+
+  // Render tables for "window"
+  function renderHolidayTable(holidaySet){
+    if (!holidaySet || holidaySet.size===0){
+      holidayList.innerHTML = '<p class="muted">No holidays loaded.</p>';
+      return;
+    }
+    const rows = Array.from(holidaySet)
+      .map(toDate).sort((a,b)=>a-b)
+      .map(d=>`<tr><td>${fmt(d)}</td><td>${d.toLocaleDateString(undefined,{weekday:'long'})}</td></tr>`)
+      .join('');
+    holidayList.innerHTML = `<table class="table"><thead><tr><th>Date</th><th>Day</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  function renderPayrollTableForWindow(startDate, endDate){
+    if (!startDate || !endDate){ payrollList.innerHTML = '<p class="muted">Pick a target date.</p>'; return; }
+    const closes = payrollClosesBetween(startDate, endDate);
+    if (!closes.length){ payrollList.innerHTML = '<p class="muted">No payroll closes in this window.</p>'; return; }
+    const rows = closes.map(d=>`<tr><td>${fmt(d)}</td><td>${d.toLocaleDateString(undefined,{weekday:'long'})}</td></tr>`).join('');
+    payrollList.innerHTML = `<table class="table"><thead><tr><th>Close date</th><th>Day</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  // Heads-up label
+  const headsUp = text => `<div class="pill">⚠️ ${text}</div>`;
+
+  // Sync lead initially
+  syncLead();
+
+  // Live-preview the “window” lists whenever target / lead / campus / manual changes
+  function refreshSidePanelsForWindow(){
+    const targetStr = targetInput.value;
+    if (!targetStr){
+      holidayList.innerHTML = '<p class="muted">Pick a target date to preview holidays in range.</p>';
+      payrollList.innerHTML = '<p class="muted">Pick a target date to preview payroll closes in range.</p>';
+      return;
+    }
+    const target = toDate(targetStr);
+    const lead = Math.max(0, parseInt(leadInput.value||'0',10));
+    const campus = campusSel.value;
+    const manual = (customHolidaysInput.value||'').split(/[,\s]+/);
+    const holidaySet = buildHolidaySet(target, lead, campus, manual);
+
+    // Window start for preview = target - (lead + buffer)
+    const buffer = 30;
+    const windowStart = new Date(target.getTime() - days(lead + buffer));
+    renderHolidayTable(holidaySet);
+    renderPayrollTableForWindow(windowStart, target);
+  }
+
+  // Event wiring
+  teamSel.addEventListener('change', ()=>{ syncLead(); refreshSidePanelsForWindow(); });
+  leadInput.addEventListener('input', refreshSidePanelsForWindow);
+  campusSel.addEventListener('change', refreshSidePanelsForWindow);
+  customHolidaysInput.addEventListener('input', refreshSidePanelsForWindow);
+  targetInput.addEventListener('change', refreshSidePanelsForWindow);
+
+  // Calculate
+  document.getElementById('calc').setAttribute('type','button');
+  document.getElementById('calc').addEventListener('click', ()=>{
+    const targetStr = targetInput.value;
+    const lead = Math.max(0, parseInt(leadInput.value||'0',10));
+    if (!targetStr){ alert('Please pick a target completion date.'); return; }
+
+    const target = toDate(targetStr);
+    const campus = campusSel.value;
+    const manual = (customHolidaysInput.value||'').split(/[,\s]+/);
+    const holidaySet = buildHolidaySet(target, lead, campus, manual);
+
+    const submitBy = subtractBusinessDays(target, lead, holidaySet);
+    const closesInWindow = payrollClosesBetween(submitBy, target);
+    const teamName = teamSel.options[teamSel.selectedIndex].text;
+
+    resultBox.innerHTML = `
+      <div class="badge">${teamName} — ${lead} business day${lead===1?'':'s'}</div>
+      <h2>Suggested Submit-By</h2>
+      <div class="date">${submitBy.toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric', year:'numeric'})}</div>
+      <div class="muted" style="margin-top:.5rem">Target completion: <strong>${target.toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric', year:'numeric'})}</strong></div>`;
+
+    const notes = [];
+    if (!isBusinessDay(target, holidaySet)){
+      notes.push(headsUp('Your target falls on a weekend/holiday; we used the previous business day as the effective target.'));
+    }
+    if (closesInWindow.length){
+      const d = closesInWindow[0];
+      notes.push(headsUp(`Payroll close detected on ${d.toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric', year:'numeric'})}. Consider submitting earlier if pay-effect timing matters.`));
+    }
+    notes.push('Logic: counted backward from target by business days (Mon–Fri), skipping baseline UMN holidays plus campus extras and any manual closures across all years in range.');
+    notesBox.innerHTML = notes.map(n=>`<div style="margin:.25rem 0">${n}</div>`).join('');
+
+    // After calculation, re-render side panels limited to the exact [submitBy → target] window
+    renderHolidayTable(holidaySet);
+    renderPayrollTableForWindow(submitBy, target);
+  });
+
+  // Reset
+  document.getElementById('reset').addEventListener('click', ()=>{
+    const defIdx = Math.max(0, TEAM_OPTIONS.findIndex(t=>t.default));
+    teamSel.selectedIndex = defIdx;
+    syncLead();
+    targetInput.value = '';
+    customHolidaysInput.value = '';
+    notesBox.textContent = '';
+    resultBox.innerHTML = '<div class="muted">No calculation yet.</div>';
+    holidayList.innerHTML = '<p class="muted">Pick a target date to preview holidays in range.</p>';
+    payrollList.innerHTML = '<p class="muted">Pick a target date to preview payroll closes in range.</p>';
+  });
+
+  // Initial side-panel message
+  refreshSidePanelsForWindow();
+});
+</script>
+
+</body>
+</html>
