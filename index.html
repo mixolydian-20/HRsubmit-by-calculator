@@ -146,19 +146,19 @@ const PAYROLL_CLOSES = {
 const CAMPUS_EXTRAS = {
    "Twin Cities & Rochester": {
       2025: ['2025-12-24','2025-12-26'],
-		2026: ['2026-01-01','2026-01-19','2026-05-25','2026-06-19','2026-07-03']
+		2026: ['2026-01-01','2026-01-19','2026-05-25','2026-06-19','2026-07-03','2026-12-28']
     },
     "Duluth": {
        2025: ['2025-12-24','2025-12-26'],
-		2026: ['2026-01-01','2026-01-02','2026-01-19','2026-05-25','2026-06-19','2026-07-03']
+		2026: ['2026-01-01','2026-01-02','2026-01-19','2026-05-25','2026-06-19','2026-07-03','2026-12-24']
     },
     "Morris": {
      2025: ['2025-12-26'],
-		2026: ['2026-01-01','2026-01-02','2026-01-19','2026-03-13','2026-05-25','2026-06-19']
+		2026: ['2026-01-01','2026-01-02','2026-01-19','2026-03-13','2026-05-25','2026-06-19','2026-12-24','2026-12-31']
     },
     "Crookston": {
        2025: ['2025-12-26'],
-		2026: ['2026-01-01','2026-01-02','2026-01-19','2026-02-16','2026-05-25','2026-06-19','2026-07-03']
+		2026: ['2026-01-01','2026-01-02','2026-01-19','2026-02-16','2026-05-25','2026-06-19','2026-07-03','2026-12-24']
     }
 };
 
@@ -227,8 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
     H.push(observed(new Date(year,5,19)));     // Juneteenth
     H.push(observed(new Date(year,6,4)));      // Independence Day
     H.push(nthWeekdayOfMonth(year,8,1,1));     // Labor Day (Mon)
-    H.push(nthWeekdayOfMonth(year,9,1,2));     // Indigenous Peoples' Day (Mon)
-    H.push(observed(new Date(year,10,11)));    // Veterans Day
     const thanksgiving = nthWeekdayOfMonth(year,10,4,4); // 4th Thu Nov
     H.push(thanksgiving);
     H.push(new Date(thanksgiving.getFullYear(), thanksgiving.getMonth(), thanksgiving.getDate()+1)); // Friday after
